@@ -1,0 +1,1 @@
+# Go Multitenant Template
