@@ -19,7 +19,7 @@ type Claims struct {
 }
 
 func GenerateToken(data Claims) (string, error) {
-	expirationTime := time.Now().Add(5 * time.Minute)
+	expirationTime := time.Now().Add(48 * time.Hour)
 	claims := &Claims{
 		ID:           data.ID,
 		Email:        data.Email,

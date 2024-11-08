@@ -5,12 +5,12 @@ import (
 	"go-multitenant-boilerplate/db"
 	"go-multitenant-boilerplate/db/migrations"
 	"go-multitenant-boilerplate/helpers"
+	"go-multitenant-boilerplate/middleware"
 	tenantmodel "go-multitenant-boilerplate/models/tenant"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 func (c *Controller) SignUp(ctx *gin.Context) {
@@ -49,12 +49,12 @@ func (c *Controller) SignUp(ctx *gin.Context) {
 		return
 	}
 	err = c.userService.Create(&tenantmodel.User{
-		ID:        uuid.NewString(),
-		FirstName: tenant.FirstName,
-		LastName:  tenant.LastName,
-		Role:      "admin",
-		Email:     tenant.Email,
-		Password:  tenant.Password,
+		FirstName:    tenant.FirstName,
+		LastName:     tenant.LastName,
+		Role:         "admin",
+		Email:        tenant.Email,
+		Password:     tenant.Password,
+		Organization: tenant.Organization,
 	})
 	if err != nil {
 		ctx.JSON(500, gin.H{"status": false, "message": err.Error()})
@@ -76,16 +76,31 @@ func (c *Controller) Login(ctx *gin.Context) {
 		return
 	}
 
-	var user tenantmodel.User
-	err := c.userService.ReadByEmail(&user, users.Email)
+	var existingUser tenantmodel.User
+	err := c.userService.ReadByEmail(&existingUser, users.Email, users.Organization)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
-	if user.Email == "" {
+
+	if existingUser.Email == "" {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "User does not exist"})
+		return
 	}
 
+	jwtToken, err := middleware.GenerateToken(middleware.Claims{
+		ID:           existingUser.ID,
+		FirstName:    existingUser.FirstName,
+		LastName:     existingUser.LastName,
+		Organization: existingUser.Organization,
+		Email:        existingUser.Email,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusFailedDependency, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"token": jwtToken, "message": "login successful", "status": true})
 }
 
 func (c *Controller) AddUser(ctx *gin.Context) {

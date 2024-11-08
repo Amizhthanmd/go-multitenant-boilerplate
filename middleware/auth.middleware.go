@@ -9,15 +9,22 @@ import (
 func TenantAuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authHeader := ctx.GetHeader("Authorization")
-		if authHeader == "" {
-			ctx.JSON(401, gin.H{"status": false, "message": "Missing Authorization header"})
+		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+			ctx.JSON(401, gin.H{"error": "Authorization header missing or invalid"})
 			ctx.Abort()
 			return
 		}
-		tokenStr := strings.TrimPrefix(authHeader, "Bearer")
-		claims, err := ParseJWT(tokenStr)
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+
+		claims, err := ParseJWT(tokenString)
 		if err != nil {
 			ctx.JSON(401, gin.H{"status": false, "message": "Invalid token"})
+			ctx.Abort()
+			return
+		}
+
+		if err := claims.Valid(); err != nil {
+			ctx.JSON(401, gin.H{"status": false, "message": "Token expired or invalid"})
 			ctx.Abort()
 			return
 		}
