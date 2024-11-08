@@ -32,3 +32,12 @@ func HashPassword(password string) string {
 	}
 	return string(bytes)
 }
+
+func VerifyPassword(hashedPassword, password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err != nil {
+		log.Println("Invalid password:", err)
+		return false
+	}
+	return true
+}
