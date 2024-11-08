@@ -9,6 +9,13 @@ import (
 func TenantAuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authHeader := ctx.GetHeader("Authorization")
+		organization := ctx.GetHeader("Organization")
+		if organization == "" {
+			ctx.JSON(401, gin.H{"error": "Organization header missing or invalid"})
+			ctx.Abort()
+			return
+		}
+
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 			ctx.JSON(401, gin.H{"error": "Authorization header missing or invalid"})
 			ctx.Abort()

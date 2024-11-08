@@ -17,8 +17,9 @@ func InitializeUserService(db *gorm.DB, log *zap.Logger) *UserService {
 	return &UserService{db: db, logger: log}
 }
 
-func (us *UserService) Create(data *tenant.User) error {
-	return us.db.Create(&data).Error
+func (us *UserService) Create(data *tenant.User, schema string) error {
+	table := us.GetSchemaTable(schema, data)
+	return us.db.Table(table).Create(&data).Error
 }
 
 func (us *UserService) ReadByEmail(data *tenant.User, email string, schema string) error {

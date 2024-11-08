@@ -55,7 +55,7 @@ func (c *Controller) SignUp(ctx *gin.Context) {
 		Email:        tenant.Email,
 		Password:     tenant.Password,
 		Organization: tenant.Organization,
-	})
+	}, tenant.Organization)
 	if err != nil {
 		ctx.JSON(500, gin.H{"status": false, "message": err.Error()})
 		return
@@ -88,6 +88,11 @@ func (c *Controller) Login(ctx *gin.Context) {
 		return
 	}
 
+	if !helpers.VerifyPassword(existingUser.Password, users.Password) {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Password is incorrect"})
+		return
+	}
+
 	jwtToken, err := middleware.GenerateToken(middleware.Claims{
 		ID:           existingUser.ID,
 		FirstName:    existingUser.FirstName,
@@ -104,6 +109,27 @@ func (c *Controller) Login(ctx *gin.Context) {
 }
 
 func (c *Controller) AddUser(ctx *gin.Context) {
+	var users tenantmodel.User
+	if err := ctx.ShouldBindJSON(&users); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	users.Password = helpers.HashPassword(users.Password)
+
+	err := c.userService.Create(&tenantmodel.User{
+		FirstName:    users.FirstName,
+		LastName:     users.LastName,
+		Role:         users.Role,
+		Email:        users.Email,
+		Password:     users.Password,
+		Organization: users.Organization,
+	}, users.Organization)
+	if err != nil {
+		ctx.JSON(500, gin.H{"status": false, "message": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "user added successfully", "status": true})
 
 }
 
