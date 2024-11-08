@@ -6,6 +6,7 @@ type User struct {
 	ID        string    `json:"id,omitempty" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
+	Role      string    `json:"role"`
 	Email     string    `json:"email"`
 	Password  string    `json:"password"`
 	CreatedAt time.Time `json:"created_at,omitempty" gorm:"autoCreateTime"`

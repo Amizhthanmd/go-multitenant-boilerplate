@@ -35,10 +35,6 @@ func (c *Controller) SignUp(ctx *gin.Context) {
 		ctx.JSON(500, gin.H{"status": false, "message": err.Error()})
 		return
 	}
-	if err != nil {
-		ctx.JSON(500, gin.H{"status": false, "message": err.Error()})
-		return
-	}
 
 	if err := c.TenantService.Create(&tenant); err != nil {
 		ctx.JSON(500, gin.H{"status": false, "message": err.Error()})
@@ -56,6 +52,7 @@ func (c *Controller) SignUp(ctx *gin.Context) {
 		ID:        uuid.NewString(),
 		FirstName: tenant.FirstName,
 		LastName:  tenant.LastName,
+		Role:      "admin",
 		Email:     tenant.Email,
 		Password:  tenant.Password,
 	})

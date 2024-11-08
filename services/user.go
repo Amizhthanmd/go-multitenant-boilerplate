@@ -21,5 +21,5 @@ func (us *UserService) Create(data *tenant.User) error {
 }
 
 func (us *UserService) ReadByEmail(data *tenant.User, email string) error {
-	
+	return us.db.First(data, "email").Error
 }
