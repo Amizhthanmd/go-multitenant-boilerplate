@@ -34,7 +34,22 @@ func (us *UserService) GetUserById(data *tenant.User, id string, schema string) 
 
 func (us *UserService) ListUsers(data *[]tenant.User, limit, offset int, schema string) error {
 	table := us.GetSchemaTable(schema, data)
-	return us.db.Table(table).Limit(limit).Offset(offset).Find(data).Error
+	return us.db.Table(table).Order("created_at ASC").Limit(limit).Offset(offset).Find(data).Error
+}
+
+func (us *UserService) UpdateUser(data *tenant.User, schema string) error {
+	table := us.GetSchemaTable(schema, data)
+	var existingUser tenant.User
+	err := us.db.Table(table).Where("id = ?", data.ID).First(&existingUser).Error
+	if err != nil {
+		return fmt.Errorf("user not found: %v", err)
+	}
+	return us.db.Table(table).Where("id = ?", data.ID).Updates(data).Error
+}
+
+func (us *UserService) DeleteUser(id string, schema string) error {
+	table := us.GetSchemaTable(schema, tenant.User{})
+	return us.db.Table(table).Where("id = ?", id).Delete(&tenant.User{}).Error
 }
 
 func (us *UserService) GetSchemaTable(schema, data interface{}) string {
