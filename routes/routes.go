@@ -33,7 +33,8 @@ func UserRoutes(v1 *gin.RouterGroup, controller *controllers.Controller) {
 	userRoutes := v1.Group("users")
 	{
 		userRoutes.POST("", middleware.TenantAuthMiddleware(), controller.AddUser)
-		userRoutes.GET("", middleware.TenantAuthMiddleware(), controller.GetUsers)
+		userRoutes.GET(":id", middleware.TenantAuthMiddleware(), controller.GetUser)
+		userRoutes.GET("", middleware.TenantAuthMiddleware(), controller.ListUsers)
 		userRoutes.PUT(":id", middleware.TenantAuthMiddleware(), controller.UpdateUser)
 		userRoutes.DELETE(":id", middleware.TenantAuthMiddleware(), controller.DeleteUser)
 	}

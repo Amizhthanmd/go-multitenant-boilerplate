@@ -27,6 +27,16 @@ func (us *UserService) ReadByEmail(data *tenant.User, email string, schema strin
 	return us.db.Table(table).Where("email = ?", email).First(data).Error
 }
 
+func (us *UserService) GetUserById(data *tenant.User, id string, schema string) error {
+	table := us.GetSchemaTable(schema, data)
+	return us.db.Table(table).Where("id = ?", id).First(data).Error
+}
+
+func (us *UserService) ListUsers(data *[]tenant.User, limit, offset int, schema string) error {
+	table := us.GetSchemaTable(schema, data)
+	return us.db.Table(table).Limit(limit).Offset(offset).Find(data).Error
+}
+
 func (us *UserService) GetSchemaTable(schema, data interface{}) string {
 	stmt := &gorm.Statement{DB: us.db}
 	stmt.Parse(data)
