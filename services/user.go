@@ -58,10 +58,18 @@ func (us *UserService) GetPermissions(data *[]tenant.Permission, schema string) 
 	return us.db.Table(table).Find(&data).Error
 }
 
-// Roles
-func (us *UserService) CreateRoles(data *tenant.Role, schema string) error {
+func (us *UserService) ListPermissions(data *[]tenant.Permission, schema string) error {
 	table := us.GetSchemaTable(schema, data)
-	return us.db.Table(table).Create(&data).Error
+	return us.db.Table(table).Find(data).Error
+}
+
+func (us *UserService) GetPermissionsByIds(data *[]tenant.Permission, Ids []string) error {
+	return us.db.Where("id IN ?", Ids).Find(&data).Error
+}
+
+// Roles
+func (us *UserService) CreateRoles(data *tenant.Role) error {
+	return us.db.Create(&data).Error
 }
 
 func (us *UserService) GetRolesById(data *tenant.Role, id string) error {

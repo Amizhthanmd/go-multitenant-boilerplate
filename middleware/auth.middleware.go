@@ -37,10 +37,12 @@ func AuthMiddleware(permission string) gin.HandlerFunc {
 			return
 		}
 
-		if !helpers.SliceContains(claims.Permissions, permission) {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"status": false, "message": "Permission is not allowed"})
-			ctx.Abort()
-			return
+		if permission != "" {
+			if !helpers.SliceContains(claims.Permissions, permission) {
+				ctx.JSON(http.StatusUnauthorized, gin.H{"status": false, "message": "Permission is not allowed"})
+				ctx.Abort()
+				return
+			}
 		}
 
 		ctx.Set("user_id", claims.ID)

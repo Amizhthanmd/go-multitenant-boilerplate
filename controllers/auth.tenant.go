@@ -66,7 +66,7 @@ func (c *Controller) SignUp(ctx *gin.Context) {
 		Permissions: permissions,
 	}
 
-	err = c.userService.CreateRoles(&createRole, tenant.Organization)
+	err = c.userService.CreateRoles(&createRole)
 	if err != nil {
 		ctx.JSON(500, gin.H{"status": false, "message": err.Error()})
 		return
