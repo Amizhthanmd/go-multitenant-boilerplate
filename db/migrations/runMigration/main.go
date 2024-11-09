@@ -17,13 +17,15 @@ func main() {
 	if err != nil {
 		fmt.Println("Failed to load .env :", err)
 	}
+	dbNames := []string{os.Getenv("ADMIN_DB"), os.Getenv("TENANT_DB")}
+	postgresDbUrl := os.Getenv("POSTGRES_DB_URL")
+
 	fmt.Print("1 : Create Database\n", "2 : Run Migration\n", "Choose the option : ")
 	var DbOption int
 	fmt.Scan(&DbOption)
-	dbNames := []string{os.Getenv("ADMIN_DB"), os.Getenv("TENANT_DB")}
 
 	if DbOption == 1 {
-		postgresDb, err := gorm.Open(postgres.Open(os.Getenv("POSTGRES_DB_URL")), &gorm.Config{})
+		postgresDb, err := gorm.Open(postgres.Open(postgresDbUrl), &gorm.Config{})
 		if err != nil {
 			log.Fatal("failed to connect to PostgreSQL server")
 		}
@@ -34,7 +36,7 @@ func main() {
 		fmt.Print("1 : Admin\n", "2 : Tenant\n", "Choose a DB to migrate : ")
 		var dbChoice int
 		fmt.Scan(&dbChoice)
-		dsn := fmt.Sprintf("%s%s", os.Getenv("POSTGRES_DB_URL"), os.Getenv("ADMIN_DB"))
+		dsn := fmt.Sprintf("%s%s", postgresDbUrl, dbNames[0])
 		adminDb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err != nil {
 			log.Fatal("failed to connect admin database")
@@ -52,7 +54,7 @@ func main() {
 			if len(tenant) == 0 {
 				log.Fatal("No tenant found.")
 			}
-			dsn := fmt.Sprintf("%s%s", os.Getenv("POSTGRES_DB_URL"), os.Getenv("TENANT_DB"))
+			dsn := fmt.Sprintf("%s%s", postgresDbUrl, dbNames[1])
 			tenantDb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 			if err != nil {
 				log.Fatal("failed to connect tenant database")
