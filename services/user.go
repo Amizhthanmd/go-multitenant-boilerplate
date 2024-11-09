@@ -17,14 +17,14 @@ func InitializeUserService(db *gorm.DB, log *zap.Logger) *UserService {
 	return &UserService{db: db, logger: log}
 }
 
+// Users
 func (us *UserService) Create(data *tenant.User, schema string) error {
 	table := us.GetSchemaTable(schema, data)
 	return us.db.Table(table).Create(&data).Error
 }
 
-func (us *UserService) ReadByEmail(data *tenant.User, email string, schema string) error {
-	table := us.GetSchemaTable(schema, data)
-	return us.db.Table(table).Where("email = ?", email).First(data).Error
+func (us *UserService) ReadByEmail(data *tenant.User, email string) error {
+	return us.db.Where("email = ?", email).First(data).Error
 }
 
 func (us *UserService) GetUserById(data *tenant.User, id string, schema string) error {
@@ -52,14 +52,20 @@ func (us *UserService) DeleteUser(id string, schema string) error {
 	return us.db.Table(table).Where("id = ?", id).Delete(&tenant.User{}).Error
 }
 
+// Permissions
 func (us *UserService) GetPermissions(data *[]tenant.Permission, schema string) error {
 	table := us.GetSchemaTable(schema, data)
-	return us.db.Table(table).Find(data).Error
+	return us.db.Table(table).Find(&data).Error
 }
 
+// Roles
 func (us *UserService) CreateRoles(data *tenant.Role, schema string) error {
 	table := us.GetSchemaTable(schema, data)
 	return us.db.Table(table).Create(&data).Error
+}
+
+func (us *UserService) GetRolesById(data *tenant.Role, id string) error {
+	return us.db.Preload("Permissions").Where("id = ?", id).First(&data).Error
 }
 
 func (us *UserService) GetSchemaTable(schema, data interface{}) string {

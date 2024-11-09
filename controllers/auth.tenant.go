@@ -99,22 +99,28 @@ func (c *Controller) Login(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Missing credentials"})
 		return
 	}
+	c.TenantDB.Exec(fmt.Sprintf(`SET search_path="%s"`, users.Organization))
 
 	var existingUser tenantmodel.User
-	err := c.userService.ReadByEmail(&existingUser, users.Email, users.Organization)
+	err := c.userService.ReadByEmail(&existingUser, users.Email)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
-
-	if existingUser.Email == "" {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "User does not exist"})
-		return
-	}
-
 	if !helpers.VerifyPassword(existingUser.Password, users.Password) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Password is incorrect"})
 		return
+	}
+
+	var role tenantmodel.Role
+	err = c.userService.GetRolesById(&role, existingUser.RoleID)
+	if err != nil {
+		ctx.JSON(500, gin.H{"status": false, "message": err.Error()})
+		return
+	}
+	var permissions []string
+	for _, v := range role.Permissions {
+		permissions = append(permissions, v.Name)
 	}
 
 	jwtToken, err := middleware.GenerateToken(middleware.Claims{
@@ -123,6 +129,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 		LastName:     existingUser.LastName,
 		Organization: existingUser.Organization,
 		Email:        existingUser.Email,
+		Permissions:  permissions,
 	})
 	if err != nil {
 		ctx.JSON(http.StatusFailedDependency, gin.H{"error": "Failed to generate token"})

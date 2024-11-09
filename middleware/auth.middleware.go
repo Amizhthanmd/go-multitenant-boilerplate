@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"go-multitenant-boilerplate/helpers"
+	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +17,6 @@ func AuthMiddleware(permission string) gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 			ctx.JSON(401, gin.H{"error": "Authorization header missing or invalid"})
 			ctx.Abort()
@@ -32,6 +33,12 @@ func AuthMiddleware(permission string) gin.HandlerFunc {
 
 		if err := claims.Valid(); err != nil {
 			ctx.JSON(401, gin.H{"status": false, "message": "Token expired or invalid"})
+			ctx.Abort()
+			return
+		}
+
+		if !helpers.SliceContains(claims.Permissions, permission) {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"status": false, "message": "Permission is not allowed"})
 			ctx.Abort()
 			return
 		}
