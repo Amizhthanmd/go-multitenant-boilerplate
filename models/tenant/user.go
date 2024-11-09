@@ -7,7 +7,8 @@ type User struct {
 	FirstName    string    `json:"first_name"`
 	LastName     string    `json:"last_name"`
 	Organization string    `json:"organization"`
-	Role         string    `json:"role"`
+	RoleID       string    `json:"role_id" gorm:"type:uuid"` 
+	Role         Role      `json:"role" gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Email        string    `json:"email"`
 	Password     string    `json:"password"`
 	CreatedAt    time.Time `json:"created_at,omitempty" gorm:"autoCreateTime"`

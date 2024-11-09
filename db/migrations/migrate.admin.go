@@ -11,7 +11,7 @@ import (
 func MigrateAdminDB(db *gorm.DB) *gormigrate.Gormigrate {
 	migrate := gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		{
-			ID: "create_tenants_table",
+			ID: "001_create_tenants_table",
 			Migrate: func(d *gorm.DB) error {
 				return d.AutoMigrate(&tenant.Tenant{})
 			},

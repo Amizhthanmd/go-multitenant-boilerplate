@@ -93,3 +93,5 @@ func CheckAndCreateDatabase(initialDB *gorm.DB, dbName string) {
 		log.Println("Database already exists:", dbName)
 	}
 }
+
+

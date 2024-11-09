@@ -32,10 +32,10 @@ func StartRouter(logger *zap.Logger, controller *controllers.Controller, PORT st
 func UserRoutes(v1 *gin.RouterGroup, controller *controllers.Controller) {
 	userRoutes := v1.Group("users")
 	{
-		userRoutes.POST("", middleware.TenantAuthMiddleware(), controller.AddUser)
-		userRoutes.GET(":id", middleware.TenantAuthMiddleware(), controller.GetUser)
-		userRoutes.GET("", middleware.TenantAuthMiddleware(), controller.ListUsers)
-		userRoutes.PUT(":id", middleware.TenantAuthMiddleware(), controller.UpdateUser)
-		userRoutes.DELETE(":id", middleware.TenantAuthMiddleware(), controller.DeleteUser)
+		userRoutes.POST("", middleware.AuthMiddleware("users:write"), controller.AddUser)
+		userRoutes.GET(":id", middleware.AuthMiddleware("users:read"), controller.GetUser)
+		userRoutes.GET("", middleware.AuthMiddleware("users:list"), controller.ListUsers)
+		userRoutes.PUT(":id", middleware.AuthMiddleware("users:update"), controller.UpdateUser)
+		userRoutes.DELETE(":id", middleware.AuthMiddleware("users:delete"), controller.DeleteUser)
 	}
 }

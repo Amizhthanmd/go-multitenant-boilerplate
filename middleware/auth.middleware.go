@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func TenantAuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(permission string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authHeader := ctx.GetHeader("Authorization")
 		organization := ctx.GetHeader("Organization")

@@ -11,17 +11,16 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func (c *Controller) SignUp(ctx *gin.Context) {
 	var tenant tenantmodel.Tenant
-
 	if err := ctx.ShouldBindJSON(&tenant); err != nil {
 		ctx.JSON(400, gin.H{"status": false, "message": "Invalid request payload"})
 		return
 	}
 
-	// Check if email is valid
 	if !helpers.CheckValidEmail(tenant.Email) {
 		ctx.JSON(400, gin.H{"status": false, "message": "Invalid email address"})
 		return
@@ -48,10 +47,35 @@ func (c *Controller) SignUp(ctx *gin.Context) {
 		ctx.JSON(500, gin.H{"status": false, "message": err.Error()})
 		return
 	}
+	err = migrations.MigratePermission(c.TenantDB)
+	if err != nil {
+		ctx.JSON(500, gin.H{"status": false, "message": err.Error()})
+		return
+	}
+
+	var permissions []tenantmodel.Permission
+	err = c.userService.GetPermissions(&permissions, tenant.Organization)
+	if err != nil {
+		ctx.JSON(500, gin.H{"status": false, "message": err.Error()})
+		return
+	}
+
+	createRole := tenantmodel.Role{
+		ID:          uuid.New().String(),
+		Name:        "Admin",
+		Permissions: permissions,
+	}
+
+	err = c.userService.CreateRoles(&createRole, tenant.Organization)
+	if err != nil {
+		ctx.JSON(500, gin.H{"status": false, "message": err.Error()})
+		return
+	}
+
 	err = c.userService.Create(&tenantmodel.User{
 		FirstName:    tenant.FirstName,
 		LastName:     tenant.LastName,
-		Role:         "admin",
+		RoleID:       createRole.ID,
 		Email:        tenant.Email,
 		Password:     tenant.Password,
 		Organization: tenant.Organization,

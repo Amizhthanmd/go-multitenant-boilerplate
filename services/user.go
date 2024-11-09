@@ -52,6 +52,16 @@ func (us *UserService) DeleteUser(id string, schema string) error {
 	return us.db.Table(table).Where("id = ?", id).Delete(&tenant.User{}).Error
 }
 
+func (us *UserService) GetPermissions(data *[]tenant.Permission, schema string) error {
+	table := us.GetSchemaTable(schema, data)
+	return us.db.Table(table).Find(data).Error
+}
+
+func (us *UserService) CreateRoles(data *tenant.Role, schema string) error {
+	table := us.GetSchemaTable(schema, data)
+	return us.db.Table(table).Create(&data).Error
+}
+
 func (us *UserService) GetSchemaTable(schema, data interface{}) string {
 	stmt := &gorm.Statement{DB: us.db}
 	stmt.Parse(data)
